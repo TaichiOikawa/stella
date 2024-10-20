@@ -1,0 +1,14 @@
+version: '3'
+name: stella
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: stella-postgres-container
+    ports:
+      - 10001:5432
+    environment:
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'postgres'
+    volumes:
+      - ./.db:/var/lib/postgresql/data

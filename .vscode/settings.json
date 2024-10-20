@@ -1,0 +1,12 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode", // Prettierをフォーマッターとして設定
+  "editor.formatOnSave": true, // ファイル保存時にフォーマットする
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit", // ファイル保存時にESLintでエラーを自動修正する
+    "source.addMissingImports": "explicit" // 未importのモジュールを自動で探してimport文を追加する
+  },
+  "markuplint.enable": true,
+  "cSpell.words": [
+    "lucide"
+  ]
+}

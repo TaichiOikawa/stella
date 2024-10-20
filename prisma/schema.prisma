@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  user_id  String @id @default(uuid()) @db.Uuid
+  name     String
+  email    String @unique
+  class_id String @db.Uuid
+  class    Class  @relation(fields: [class_id], references: [class_id])
+
+  clubs              UserClub[]
+  CongestionStatus   CongestionStatus[]
+  announcements      Announcement[]
+  workRequestAnswers WorkRequestAnswer[]
+  CheckRequest       CheckRequest[]
+  checkers           CheckRequest[]      @relation("checker")
+}
+
+model Class {
+  class_id           String              @id @default(uuid()) @db.Uuid
+  class_name         String
+  users              User[]
+  workRequestAnswers WorkRequestAnswer[]
+  CheckRequest       CheckRequest[]
+}
+
+model Club {
+  club_id   String @id @default(uuid()) @db.Uuid
+  club_name String
+
+  users UserClub[]
+}
+
+model UserClub {
+  user_id String @db.Uuid
+  club_id String @db.Uuid
+  user    User   @relation(fields: [user_id], references: [user_id])
+  club    Club   @relation(fields: [club_id], references: [club_id])
+
+  @@id([user_id, club_id])
+}
+
+model CongestionStatus {
+  congestion_id String         @id @default(uuid(7)) @db.Uuid
+  related_id    Int
+  type          CongestionType
+  status        String
+  user_id       String         @db.Uuid
+  submitted_at  DateTime       @default(now())
+  submittedUser User           @relation(fields: [user_id], references: [user_id])
+
+  @@index([user_id])
+}
+
+model Schedule {
+  schedule_id       String    @id @default(uuid()) @db.Uuid
+  title             String
+  description       String?
+  start_time        DateTime
+  end_time          DateTime
+  actual_start_time DateTime?
+  actual_end_time   DateTime?
+  venue_id          Int
+
+  delays ScheduleDelay[]
+  venues ScheduleVenue[]
+}
+
+model Venue {
+  venue_id   Int             @id @default(autoincrement())
+  venue_name String
+  schedules  ScheduleVenue[]
+}
+
+model ScheduleVenue {
+  schedule_id String   @db.Uuid
+  venue_id    Int
+  schedule    Schedule @relation(fields: [schedule_id], references: [schedule_id])
+  venue       Venue    @relation(fields: [venue_id], references: [venue_id])
+
+  @@id([schedule_id, venue_id])
+}
+
+model ScheduleDelay {
+  delay_id           Int       @id @default(autoincrement())
+  delay_reason       String
+  announced_at       DateTime  @default(now())
+  delayed_start_time DateTime?
+  delayed_end_time   DateTime?
+  schedule           Schedule  @relation(fields: [schedule_id], references: [schedule_id])
+  schedule_id        String    @db.Uuid
+}
+
+model Announcement {
+  announcement_id String           @id @default(uuid(7)) @db.Uuid
+  title           String // 投稿タイトル
+  content         String // 内容
+  type            AnnouncementType // 投稿タイプ（全体公開、生徒公開）
+  user_id         String           @db.Uuid
+  user            User             @relation(fields: [user_id], references: [user_id])
+
+  related_class String? // UUID 型に変更
+  related_club  String? // UUID 型に変更
+  schedule_id   String? // UUID 型に変更
+  delay_id      Int?
+
+  attachments AnnouncementAttachment[] // 添付ファイルとのリレーション
+}
+
+model AnnouncementAttachment {
+  attachment_id   String       @id @default(uuid(7)) @db.Uuid
+  file_path       String // ファイルのパス
+  announcement_id String       @db.Uuid // UUID 型に変更して型を揃える
+  announcement    Announcement @relation(fields: [announcement_id], references: [announcement_id])
+
+  @@index([announcement_id])
+}
+
+model WorkRequestForm {
+  form_id                String              @id @default(uuid(7)) @db.Uuid
+  form_type              WorkRequestFormType
+  target_date            DateTime
+  deadline               DateTime
+  indoor_work_posible    Boolean
+  outdoor_work_posible   Boolean
+  indoor_end_time_limit  DateTime?
+  outdoor_end_time_limit DateTime?
+
+  workRequestAnswers WorkRequestAnswer[]
+}
+
+model WorkRequestAnswer {
+  request_id                 String          @id @default(uuid(7)) @db.Uuid
+  form_id                    String          @db.Uuid
+  form                       WorkRequestForm @relation(fields: [form_id], references: [form_id])
+  user_id                    String          @db.Uuid
+  user                       User            @relation(fields: [user_id], references: [user_id])
+  class_id                   String          @db.Uuid
+  class                      Class           @relation(fields: [class_id], references: [class_id])
+  submitted_at               DateTime        @default(now())
+  do_indoor_work             Boolean
+  do_outdoor_work            Boolean
+  scheduled_indoor_end_time  DateTime
+  scheduled_outdoor_end_time DateTime
+}
+
+model CheckRequest {
+  check_request_id String       @id @default(uuid(7)) @db.Uuid
+  class_id         String       @db.Uuid
+  class            Class        @relation(fields: [class_id], references: [class_id])
+  user_id          String       @db.Uuid
+  user             User         @relation(fields: [user_id], references: [user_id])
+  working_place_id String       @db.Uuid
+  working_place    WorkingPlace @relation(fields: [working_place_id], references: [place_id])
+  submitted_at     DateTime     @default(now())
+  check_by         String       @db.Uuid
+  checker          User         @relation("checker", fields: [check_by], references: [user_id])
+  accept_at        DateTime?
+}
+
+model WorkingPlace {
+  place_id   String @id @default(uuid()) @db.Uuid
+  place_name String
+
+  checkRequests CheckRequest[]
+}
+
+model Students {
+  student_id      String @id @default(uuid()) @db.Uuid
+  last_name       String
+  first_name      String
+  last_name_kana  String
+  first_name_kana String
+  grade           Int
+  class           Int
+}
+
+enum WorkRequestFormType {
+  WORK_weekday
+  WORK_holiday
+}
+
+enum CongestionType {
+  class
+  club
+}
+
+enum AnnouncementType {
+  PUBLIC // 全体公開
+  STUDENT // 生徒公開
+}
