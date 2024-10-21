@@ -1,47 +1,45 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Run Docker Compose",
-            "type": "shell",
-            "command": "cd ${workspaceFolder}/.develop && docker compose up -d --build",
-            "isBackground": true
-        },
-        {
-            "label": "Develop Database init",
-            "type": "shell",
-            "command": "yarn db:dev",
-            "dependsOn": [
-                "Run Docker Compose"
-            ]
-        },
-        {
-            "label": "Start Storybook",
-            "type": "shell",
-            "command": "yarn storybook",
-        },
-        {
-            "label": "Start Dev Server",
-            "type": "shell",
-            "command": "yarn dev",
-            "dependsOn": [
-                "Develop Database init"
-            ]
-        },
-        {
-            "label": "dev",
-            "dependsOn": [
-                "Develop Database init",
-                "Start Storybook",
-                "Start Dev Server"
-            ],
-            "runOptions": {
-                "runOn": "folderOpen"
-            },
-            "icon": {
-                "dark": "checkmark",
-                "light": "checkmark"
-            }
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Docker Compose",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/.develop && docker compose up -d --build",
+      "isBackground": true
+    },
+    {
+      "label": "Install Dependencies",
+      "type": "shell",
+      "command": "yarn install"
+    },
+    {
+      "label": "Develop Database init",
+      "type": "shell",
+      "command": "yarn db:dev",
+      "dependsOn": ["Run Docker Compose", "Install Dependencies"]
+    },
+    {
+      "label": "Start Storybook",
+      "type": "shell",
+      "command": "yarn storybook",
+      "dependsOn": ["Install Dependencies"]
+    },
+    {
+      "label": "Start Dev Server",
+      "type": "shell",
+      "command": "yarn dev",
+      "dependsOn": ["Develop Database init", "Install Dependencies"]
+    },
+    {
+      "label": "dev",
+      "dependsOn": ["Install Dependencies", "Develop Database init", "Start Storybook", "Start Dev Server"],
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "icon": {
+        "dark": "checkmark",
+        "light": "checkmark"
+      }
+    }
+  ]
 }
