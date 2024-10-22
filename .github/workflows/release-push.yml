@@ -1,7 +1,7 @@
 name: CI
 
 env:
-  VERCEL_OGR_ID: ${{ secrets.VERCEL_OGR_ID }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 on:
@@ -58,6 +58,9 @@ jobs:
 
       - name: Pull Vercel Environment Infomation
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Prisma Schema to Vercel
+        run: yarn prisma:deploy
 
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
