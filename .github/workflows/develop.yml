@@ -1,12 +1,12 @@
-name: CI/CD
+name: Development CI/CD
 
 on:
   pull_request:
     branches:
-      - main
+      - develop
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 jobs:
@@ -57,12 +57,12 @@ jobs:
           gh pr review "$PR_URL" --approve
           gh pr merge "$PR_URL" --auto --merge
 
-  release:
+  preview:
     needs:
       - test
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: preview
       url: ${{ steps.deploy.outputs.url }}
 
     steps:
@@ -85,14 +85,11 @@ jobs:
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Pull Vercel Environment Infomation
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      # - name: Deploy Prisma Schema to Vercel
-      #   run: yarn prisma:deploy
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
         id: deploy
-        run: echo "url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})" >> $GITHUB_OUTPUT
+        run: echo "url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})" >> $GITHUB_OUTPUT
