@@ -52,20 +52,22 @@ jobs:
       - name: Build
         run: yarn build
 
-  merge:
-    if: github.event_name == 'pull_request'
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
       - name: Auto Merge
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
+          run: |
           gh pr review "$PR_URL" --approve
           gh pr merge "$PR_URL" --auto --merge
+
+      - name: Cache node_modules
+        id: node_modules_cache_id
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}-${{ steps.node.outputs.version }}
+
 
   release:
     needs:
