@@ -1,4 +1,4 @@
-name: Auto Test and Merge
+name: CI/CD
 
 on:
   pull_request:
